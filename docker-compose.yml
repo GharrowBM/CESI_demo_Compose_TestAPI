@@ -1,0 +1,48 @@
+version: '3'
+services:
+  api:
+    container_name: mon-api
+    build: TestAPI.WebAPI
+    
+    # build:
+    #   context: TestAPI.WebAPI
+    #   dockerfile: Dockerfile
+
+    # build:
+    #   context: .
+    #   dockerfile: TestAPI.WebAPI/Dockerfile
+
+    image: mon-image-api
+
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    networks:
+      - net-appli
+
+    depends_on:
+      database:
+        condition: service_healthy
+
+
+  database:
+    container_name: ma-db
+    build: database
+    volumes:
+      - mes-donnes:/var/lib/mysql
+    restart: on-failure
+    environment:
+      # - MYSQL_ROOT_PASSWORD=password1234 
+      MYSQL_ROOT_PASSWORD: password1234 
+    networks:
+      - net-appli
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  mes-donnes:
+networks:
+  net-appli:
